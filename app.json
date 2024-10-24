@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "urban-clean-tech-app",
+    "name": "Urban Clean Tech",
     "slug": "urban-clean-tech-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,7 +12,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +25,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Permita que o $(PRODUCT_NAME) acesse seus dados biométricos do Face ID."
+        }
+      ]
+    ]
   }
 }
