@@ -6,15 +6,17 @@ import screenOptions from "./style";
 const Tab = createBottomTabNavigator();
 
 export default function MenuStack() {
+  const initialRouteName = menu[0].routeName;
+
   return (
     <Tab.Navigator
-      initialRouteName="homeStack"
+      initialRouteName={initialRouteName}
       screenOptions={({ route }) => screenOptions(route, menu)}
     >
       {menu.map((screen) => (
         <Tab.Screen
           key={screen.id}
-          name={screen.name}
+          name={screen.routeName}
           component={screen.component}
         />
       ))}

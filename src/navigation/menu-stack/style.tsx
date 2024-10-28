@@ -5,26 +5,23 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 interface MenuItem {
   id: number;
   icon: string;
-  name: string;
+  routeName: string;
   title: string;
   component: React.ComponentType;
 }
 
-// const defaultWhiteColor = "#ffffff";
-// const defaultBlackColor = "#000000";
-
 const findScreenByRoute = (
-  menu: MenuItem[],
-  name: string
+  routeName: string,
+  menu: MenuItem[]
 ): MenuItem | undefined => {
-  return menu.find((item) => item.name === name);
+  return menu.find((item) => item.routeName === routeName);
 };
 
 const screenOptions = (
   route: RouteProp<ParamListBase, string>,
   menu: MenuItem[]
 ): BottomTabNavigationOptions => {
-  const screen = findScreenByRoute(menu, route.name);
+  const screen = findScreenByRoute(route.name, menu);
 
   return {
     headerShown: false,
@@ -37,7 +34,8 @@ const screenOptions = (
         color={color}
       />
     ),
-    tabBarShowLabel: false,
+    tabBarShowLabel: true,
+    tabBarLabel: screen?.title,
   };
 };
 
