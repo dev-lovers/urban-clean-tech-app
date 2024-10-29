@@ -30,7 +30,13 @@
       [
         "expo-secure-store",
         {
-          "faceIDPermission": "Permita que o $(PRODUCT_NAME) acesse seus dados biométricos do Face ID."
+          "faceIDPermission": "Permita que $(PRODUCT_NAME) acesse seus dados biométricos do Face ID."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permita que $(PRODUCT_NAME) use sua localização."
         }
       ]
     ]

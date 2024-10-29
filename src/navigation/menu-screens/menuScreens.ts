@@ -1,6 +1,7 @@
 import React from "react";
 import HomeStack from "../home-stack/HomeStack";
 import MapStack from "../map-stack/MapStack";
+import ProfileStack from "../profile-stack/ProfileStack";
 
 interface MenuItem {
   id: number;
@@ -22,8 +23,15 @@ const menu: MenuItem[] = [
     id: 2,
     icon: "map",
     routeName: "mapStack",
-    title: "Map",
+    title: "Mapa",
     component: MapStack,
+  },
+  {
+    id: 3,
+    icon: "account-circle",
+    routeName: "profileStack",
+    title: "Perfil",
+    component: ProfileStack,
   },
 ];
 
