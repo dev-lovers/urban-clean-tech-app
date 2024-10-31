@@ -25,7 +25,9 @@ const screenOptions = (
 
   return {
     headerShown: false,
-    tabBarStyle: {},
+    tabBarStyle: {
+      position: "absolute",
+    },
     tabBarIconStyle: {},
     tabBarIcon: ({ size, color }) => (
       <MaterialCommunityIcons
@@ -35,6 +37,7 @@ const screenOptions = (
       />
     ),
     tabBarShowLabel: true,
+    tabBarLabelStyle: {},
     tabBarLabel: screen?.title,
   };
 };

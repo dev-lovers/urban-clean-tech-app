@@ -1,23 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, StyleSheet } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { Map } from "../../components";
 
 export default function MapScreen() {
-  const [mapRegion, setmapRegion] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
-
   return (
     <View style={styles.container}>
-      <MapView
-        style={{ alignSelf: "stretch", height: "100%" }}
-        region={mapRegion}
-      >
-        <Marker coordinate={mapRegion} title="Marker" />
-      </MapView>
+      <Map />
     </View>
   );
 }
@@ -25,5 +13,8 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
