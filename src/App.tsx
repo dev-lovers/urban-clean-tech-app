@@ -41,7 +41,10 @@ function AppContent() {
   return (
     <PaperProvider theme={paperTheme}>
       <Navigation theme={paperTheme} />
-      <StatusBar style={colorScheme === "light" ? "dark" : "light"} />
+      <StatusBar
+        backgroundColor={paperTheme.colors.background}
+        style={colorScheme === "light" ? "dark" : "light"}
+      />
     </PaperProvider>
   );
 }
