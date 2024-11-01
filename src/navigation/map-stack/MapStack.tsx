@@ -5,7 +5,7 @@ import stackOptions from "../style";
 
 const Stack = createStackNavigator();
 
-export default function MapStack() {
+const MapStack = () => {
   return (
     <Stack.Navigator initialRouteName="mapScreen">
       <Stack.Group>
@@ -17,4 +17,6 @@ export default function MapStack() {
       </Stack.Group>
     </Stack.Navigator>
   );
-}
+};
+
+export default MapStack;

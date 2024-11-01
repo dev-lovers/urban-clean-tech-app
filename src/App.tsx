@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "react-native";
 import "react-native-gesture-handler";
@@ -13,6 +13,7 @@ import {
   DarkTheme as NavigationDarkTheme,
 } from "@react-navigation/native";
 import merge from "deepmerge";
+
 import Colors from "./theme/theme";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
@@ -32,11 +33,13 @@ const {
 const CombinedLightTheme = merge(NavigationLightTheme, customLightTheme);
 const CombinedDarkTheme = merge(NavigationDarkThemeAdapted, customDarkTheme);
 
-function AppContent() {
+const AppContent = () => {
   const colorScheme = useColorScheme();
 
-  const paperTheme =
-    colorScheme === "dark" ? CombinedDarkTheme : CombinedLightTheme;
+  const paperTheme = useMemo(
+    () => (colorScheme === "dark" ? CombinedDarkTheme : CombinedLightTheme),
+    [colorScheme]
+  );
 
   return (
     <PaperProvider theme={paperTheme}>
@@ -47,14 +50,14 @@ function AppContent() {
       />
     </PaperProvider>
   );
-}
+};
 
-export default function App() {
-  return (
-    <AuthProvider>
-      <SettingsProvider>
-        <AppContent />
-      </SettingsProvider>
-    </AuthProvider>
-  );
-}
+const App = () => (
+  <AuthProvider>
+    <SettingsProvider>
+      <AppContent />
+    </SettingsProvider>
+  </AuthProvider>
+);
+
+export default App;

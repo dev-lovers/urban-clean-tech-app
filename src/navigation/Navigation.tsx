@@ -11,11 +11,11 @@ import stackOptions from "./style";
 
 const Stack = createStackNavigator();
 
-export default function Navigation({
-  theme,
-}: {
+interface NavigationProps {
   theme: typeof NavigationDefaultTheme | typeof NavigationDarkTheme;
-}) {
+}
+
+const Navigation: React.FC<NavigationProps> = ({ theme }) => {
   return (
     <NavigationContainer theme={theme}>
       <Stack.Navigator initialRouteName="menuStack">
@@ -32,4 +32,6 @@ export default function Navigation({
       </Stack.Navigator>
     </NavigationContainer>
   );
-}
+};
+
+export default Navigation;

@@ -2,13 +2,17 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Text } from "react-native-paper";
 
-export default function SignupScreen() {
+const SignupScreen = () => {
+  const message = "Open up SignupScreen.tsx to start working on your app!";
+
   return (
     <View style={styles.container}>
-      <Text>Open up SignupScreen.tsx to start working on your app!</Text>
+      <Text style={styles.text} accessibilityLabel={message}>
+        {message}
+      </Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -17,4 +21,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  text: {
+    textAlign: "center",
+    padding: 16,
+  },
 });
+
+export default SignupScreen;

@@ -5,7 +5,7 @@ import stackOptions from "../style";
 
 const Stack = createStackNavigator();
 
-export default function ProfileStack() {
+const ProfileStack = () => {
   return (
     <Stack.Navigator initialRouteName="profileScreen">
       <Stack.Group>
@@ -17,4 +17,6 @@ export default function ProfileStack() {
       </Stack.Group>
     </Stack.Navigator>
   );
-}
+};
+
+export default ProfileStack;

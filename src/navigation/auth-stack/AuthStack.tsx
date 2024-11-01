@@ -5,7 +5,7 @@ import stackOptions from "../style";
 
 const Stack = createStackNavigator();
 
-export default function AuthStack() {
+const AuthStack = () => {
   return (
     <Stack.Navigator initialRouteName="loginScreen">
       <Stack.Group>
@@ -22,4 +22,6 @@ export default function AuthStack() {
       </Stack.Group>
     </Stack.Navigator>
   );
-}
+};
+
+export default AuthStack;

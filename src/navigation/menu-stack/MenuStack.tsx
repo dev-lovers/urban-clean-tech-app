@@ -6,7 +6,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 const Tab = createBottomTabNavigator();
 
-export default function MenuStack() {
+const MenuStack = () => {
   const initialRouteName = menu[0].routeName;
 
   return (
@@ -14,24 +14,22 @@ export default function MenuStack() {
       initialRouteName={initialRouteName}
       screenOptions={tabNavigationOptions}
     >
-      {menu.map((screen) => (
+      {menu.map(({ id, icon, routeName, title, component }) => (
         <Tab.Screen
-          key={screen.id}
-          name={screen.routeName}
-          component={screen.component}
+          key={id}
+          name={routeName}
+          component={component}
           options={{
             ...tabScreenOptions,
             tabBarIcon: ({ size, color }) => (
-              <MaterialCommunityIcons
-                name={screen.icon}
-                size={size}
-                color={color}
-              />
+              <MaterialCommunityIcons name={icon} size={size} color={color} />
             ),
-            tabBarLabel: screen.title,
+            tabBarLabel: title,
           }}
         />
       ))}
     </Tab.Navigator>
   );
-}
+};
+
+export default MenuStack;

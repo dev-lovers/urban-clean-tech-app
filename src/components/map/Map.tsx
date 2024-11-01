@@ -16,15 +16,18 @@ interface Destination {
 }
 
 const { width, height } = Dimensions.get("window");
+const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY as string;
+
+const COLORS = {
+  primary: "#4285F4",
+  danger: "#ff4c4c",
+  markerGarbage: "#38761D",
+  markerTruck: "#6E7B8B",
+};
 
 export default function Map() {
-  const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY as string;
-
   const [camera, setCamera] = useState<Camera>({
-    center: {
-      latitude: 0,
-      longitude: 0,
-    },
+    center: { latitude: 0, longitude: 0 },
     pitch: 0,
     heading: 0,
     altitude: 1000,
@@ -42,66 +45,59 @@ export default function Map() {
   useEffect(() => {
     const startTracking = async () => {
       const { status } = await requestForegroundPermissionsAsync();
-
       if (status !== "granted") {
         Alert.alert("Permissões para acessar a localização foram negadas.");
         return;
       }
 
-      try {
-        await watchPositionAsync(
-          {
-            accuracy: Accuracy.Highest,
-            timeInterval: 5000,
-            distanceInterval: 10,
-          },
-          (loc) => {
-            setCamera((prevCamera) => ({
-              ...prevCamera,
-              center: {
-                latitude: loc.coords.latitude,
-                longitude: loc.coords.longitude,
-              },
-            }));
+      await watchPositionAsync(
+        {
+          accuracy: Accuracy.Highest,
+          timeInterval: 5000,
+          distanceInterval: 10,
+        },
+        (loc) => {
+          setCamera((prevCamera) => ({
+            ...prevCamera,
+            center: {
+              latitude: loc.coords.latitude,
+              longitude: loc.coords.longitude,
+            },
+          }));
 
-            if (followUserLocation && mapRef.current) {
-              mapRef.current.animateCamera(
-                {
-                  center: {
-                    latitude: loc.coords.latitude,
-                    longitude: loc.coords.longitude,
-                  },
-                  pitch: camera.pitch,
-                  heading: camera.heading,
-                  altitude: camera.altitude,
-                  zoom: camera.zoom ?? 17,
+          if (followUserLocation && mapRef.current) {
+            mapRef.current.animateCamera(
+              {
+                center: {
+                  latitude: loc.coords.latitude,
+                  longitude: loc.coords.longitude,
                 },
-                { duration: 2000 }
-              );
-              setFollowUserLocation(false);
-            }
+                pitch: camera.pitch,
+                heading: camera.heading,
+                altitude: camera.altitude,
+                zoom: camera.zoom ?? 17,
+              },
+              { duration: 2000 }
+            );
+            setFollowUserLocation(false);
           }
-        );
-      } catch (err) {
-        console.warn("Algo deu errado...", err);
-      }
+        }
+      );
     };
 
     startTracking();
   }, []);
 
-  const selectDestination = (
-    latitude: number,
-    longitude: number,
-    type: string
-  ) => {
+  const selectDestination = (latitude: number, longitude: number) => {
     setSelectedDestination({ latitude, longitude });
   };
 
   const getDirections = () => {
-    setDestinationLocation(selectedDestination);
-    setShouldFitMarkers(true);
-    setFollowUserLocation(false);
+    if (selectedDestination) {
+      setDestinationLocation(selectedDestination);
+      setShouldFitMarkers(true);
+      setFollowUserLocation(false);
+    }
   };
 
   const removeDirections = () => {
@@ -137,7 +133,7 @@ export default function Map() {
           pitch: camera.pitch,
           heading: camera.heading,
           altitude: camera.altitude,
-          zoom: camera.zoom ?? 17 <= 13 ? 17 : camera.zoom ?? 17,
+          zoom: Math.min(camera.zoom ?? 17, 17),
         },
         { duration: 2000 }
       );
@@ -167,27 +163,27 @@ export default function Map() {
           id="1"
           name="Container de Lixo 01"
           type="garbage-container"
-          color="#38761D"
-          latitude={-12.937122635268654}
-          longitude={-38.48954944454247}
+          color={COLORS.markerGarbage}
+          latitude={-12.9371}
+          longitude={-38.4895}
           onPress={selectDestination}
         />
         <CustomMarker
           id="2"
           name="Container de Lixo 02"
           type="garbage-container"
-          color="#38761D"
-          latitude={-12.941101301384398}
-          longitude={-38.49076716743698}
+          color={COLORS.markerGarbage}
+          latitude={-12.9411}
+          longitude={-38.4908}
           onPress={selectDestination}
         />
         <CustomMarker
           id="3"
           name="Caminhão de Coleta 01"
           type="garbage-collection-truck"
-          color="#6E7B8B"
-          latitude={-12.934767371790906}
-          longitude={-38.48394275662215}
+          color={COLORS.markerTruck}
+          latitude={-12.9348}
+          longitude={-38.4839}
         />
         {destinationLocation && (
           <MapViewDirections
@@ -195,7 +191,7 @@ export default function Map() {
             destination={destinationLocation}
             apikey={GOOGLE_API_KEY}
             strokeWidth={3}
-            strokeColor="#4285F4"
+            strokeColor={COLORS.primary}
             lineDashPattern={[0]}
             optimizeWaypoints
             precision="high"
@@ -220,7 +216,7 @@ export default function Map() {
         {selectedDestination && destinationLocation && (
           <IconButton
             mode="contained"
-            containerColor="#ff4c4c"
+            containerColor={COLORS.danger}
             icon="close"
             iconColor="#ffffff"
             size={20}
@@ -231,7 +227,7 @@ export default function Map() {
         {selectedDestination && (
           <IconButton
             mode="contained"
-            containerColor="#4285f4"
+            containerColor={COLORS.primary}
             icon="directions"
             iconColor="#ffffff"
             size={20}
