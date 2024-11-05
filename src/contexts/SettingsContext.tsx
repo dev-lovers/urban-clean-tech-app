@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useContext,
+} from "react";
 import { getUserPreferences, setUserPreferences } from "./storage";
 
 interface SettingsContextType {
@@ -61,4 +67,10 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
   );
 };
 
-export default SettingsContext;
+export const useSettings = (): SettingsContextType => {
+  const context = useContext(SettingsContext);
+  if (!context) {
+    throw new Error("useSettings deve ser usado dentro de um SettingsProvider");
+  }
+  return context;
+};

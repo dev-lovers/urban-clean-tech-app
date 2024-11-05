@@ -9,8 +9,16 @@ import { IconButton } from "react-native-paper";
 import MapView, { Camera, Region } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import CustomMarker from "../custom-marker/CustomMarker";
+import { useSocket } from "../../contexts/SocketContext";
 
 interface Destination {
+  latitude: number;
+  longitude: number;
+}
+
+interface MapMarker {
+  name: string;
+  type: "garbage-container" | "garbage-collection-truck";
   latitude: number;
   longitude: number;
 }
@@ -26,6 +34,8 @@ const COLORS = {
 };
 
 export default function Map() {
+  const { socket } = useSocket();
+
   const [camera, setCamera] = useState<Camera>({
     center: { latitude: 0, longitude: 0 },
     pitch: 0,
@@ -40,6 +50,7 @@ export default function Map() {
   const [mapReady, setMapReady] = useState(false);
   const [shouldFitMarkers, setShouldFitMarkers] = useState(true);
   const [followUserLocation, setFollowUserLocation] = useState(true);
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
   const mapRef = useRef<MapView | null>(null);
 
   useEffect(() => {
@@ -87,6 +98,18 @@ export default function Map() {
 
     startTracking();
   }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("updateCoordinates", (data: MapMarker) => {
+        setMarkers((prevMarkers) => [...prevMarkers, data]);
+      });
+
+      return () => {
+        socket.off("updateCoordinates");
+      };
+    }
+  }, [socket]);
 
   const selectDestination = (latitude: number, longitude: number) => {
     setSelectedDestination({ latitude, longitude });
@@ -159,7 +182,23 @@ export default function Map() {
           !destinationLocation ? () => setSelectedDestination(null) : undefined
         }
       >
-        <CustomMarker
+        {markers.map((marker, index) => (
+          <CustomMarker
+            key={index}
+            id={String(index)}
+            name={marker.name}
+            type={marker.type}
+            color={
+              marker.type === "garbage-container"
+                ? COLORS.markerGarbage
+                : COLORS.markerTruck
+            }
+            latitude={marker.latitude}
+            longitude={marker.longitude}
+            onPress={selectDestination}
+          />
+        ))}
+        {/* <CustomMarker
           id="1"
           name="Container de Lixo 01"
           type="garbage-container"
@@ -184,7 +223,7 @@ export default function Map() {
           color={COLORS.markerTruck}
           latitude={-12.9348}
           longitude={-38.4839}
-        />
+        /> */}
         {destinationLocation && (
           <MapViewDirections
             origin={camera.center}

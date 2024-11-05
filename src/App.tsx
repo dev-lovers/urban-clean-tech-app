@@ -17,6 +17,7 @@ import merge from "deepmerge";
 import Colors from "./theme/theme";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
+import { SocketProvider } from "./contexts/SocketContext";
 import Navigation from "./navigation/Navigation";
 
 const customLightTheme = { ...MD3LightTheme, colors: Colors.light };
@@ -55,7 +56,9 @@ const AppContent = () => {
 const App = () => (
   <AuthProvider>
     <SettingsProvider>
-      <AppContent />
+      <SocketProvider>
+        <AppContent />
+      </SocketProvider>
     </SettingsProvider>
   </AuthProvider>
 );

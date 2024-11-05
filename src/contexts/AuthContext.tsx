@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useContext,
+} from "react";
 import {
   getSensitiveData,
   setSensitiveData,
@@ -51,4 +57,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-export default AuthContext;
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
+  }
+  return context;
+};
