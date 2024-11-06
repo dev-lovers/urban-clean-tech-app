@@ -20,8 +20,7 @@ export const connectSocket = async (): Promise<Socket> => {
     // }
 
     socket = io(SOCKET_SERVER_URL, {
-      // auth: { token },
-      transports: ["websocket"],
+      // auth: { token: token },
     });
 
     socket.on("connect", () => {
