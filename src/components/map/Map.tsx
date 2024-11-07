@@ -4,12 +4,23 @@ import {
   requestForegroundPermissionsAsync,
   watchPositionAsync,
 } from "expo-location";
-import { Alert, Dimensions, View, StyleSheet } from "react-native";
+import { Dimensions, Linking, View, StyleSheet } from "react-native";
+import debounce from "lodash.debounce";
 import { IconButton } from "react-native-paper";
 import MapView, { Camera, Region } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
+import CustomDialog from "../custom-dialog/CustomDialog";
 import CustomMarker from "../custom-marker/CustomMarker";
 import { useSocket } from "../../contexts/SocketContext";
+
+const { width, height } = Dimensions.get("window");
+const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY as string;
+const COLORS = {
+  primary: "#4285F4",
+  danger: "#ff4c4c",
+  markerGarbage: "#38761D",
+  markerTruck: "#6E7B8B",
+};
 
 interface Destination {
   latitude: number;
@@ -23,19 +34,12 @@ interface MapMarker {
   longitude: number;
 }
 
-const { width, height } = Dimensions.get("window");
-const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY as string;
-
-const COLORS = {
-  primary: "#4285F4",
-  danger: "#ff4c4c",
-  markerGarbage: "#38761D",
-  markerTruck: "#6E7B8B",
-};
-
-export default function Map() {
+const Map = () => {
   const { socket } = useSocket();
+  const mapRef = useRef<MapView | null>(null);
 
+  const [showLocationPermissionDialog, setShowLocationPermissionDialog] =
+    useState(false);
   const [camera, setCamera] = useState<Camera>({
     center: { latitude: 0, longitude: 0 },
     pitch: 0,
@@ -51,13 +55,14 @@ export default function Map() {
   const [shouldFitMarkers, setShouldFitMarkers] = useState(true);
   const [followUserLocation, setFollowUserLocation] = useState(true);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
-  const mapRef = useRef<MapView | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const startTracking = async () => {
       const { status } = await requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permissões para acessar a localização foram negadas.");
+        setShowLocationPermissionDialog(true);
         return;
       }
 
@@ -68,14 +73,13 @@ export default function Map() {
           distanceInterval: 10,
         },
         (loc) => {
-          setCamera((prevCamera) => ({
-            ...prevCamera,
+          setCamera((prev) => ({
+            ...prev,
             center: {
               latitude: loc.coords.latitude,
               longitude: loc.coords.longitude,
             },
           }));
-
           if (followUserLocation && mapRef.current) {
             mapRef.current.animateCamera(
               {
@@ -97,23 +101,56 @@ export default function Map() {
     };
 
     startTracking();
-  }, []);
+  }, [camera, followUserLocation]);
 
   useEffect(() => {
     if (socket) {
-      socket.on("updateCoordinates", (data: MapMarker) => {
-        setMarkers((prevMarkers) => [...prevMarkers, data]);
-      });
+      const handleSocketUpdate = (data: MapMarker[]) => {
+        setMarkers((prevMarkers) =>
+          prevMarkers.map((marker) =>
+            data.some(
+              (updatedMarker) =>
+                updatedMarker.name === marker.name &&
+                updatedMarker.type === marker.type &&
+                (Math.abs(updatedMarker.latitude - marker.latitude) > 0.0001 ||
+                  Math.abs(updatedMarker.longitude - marker.longitude) > 0.0001)
+            )
+              ? {
+                  ...marker,
+                  latitude:
+                    data.find(
+                      (updatedMarker) =>
+                        updatedMarker.name === marker.name &&
+                        updatedMarker.type === marker.type
+                    )?.latitude ?? marker.latitude,
+                  longitude:
+                    data.find(
+                      (updatedMarker) =>
+                        updatedMarker.name === marker.name &&
+                        updatedMarker.type === marker.type
+                    )?.longitude ?? marker.longitude,
+                }
+              : marker
+          )
+        );
+      };
+
+      socket.on("updateCoordinates", handleSocketUpdate);
 
       return () => {
-        socket.off("updateCoordinates");
+        socket.off("updateCoordinates", handleSocketUpdate);
       };
     }
   }, [socket]);
 
-  const selectDestination = (latitude: number, longitude: number) => {
-    setSelectedDestination({ latitude, longitude });
+  const handleCloseDialog = () => setShowLocationPermissionDialog(false);
+
+  const openAppSettings = () => {
+    Linking.openSettings();
   };
+
+  const selectDestination = (latitude: number, longitude: number) =>
+    setSelectedDestination({ latitude, longitude });
 
   const getDirections = () => {
     if (selectedDestination) {
@@ -128,15 +165,13 @@ export default function Map() {
     setSelectedDestination(null);
   };
 
-  const handleMapReady = useCallback(() => {
-    setMapReady(true);
-  }, []);
+  const handleMapReady = useCallback(() => setMapReady(true), []);
 
   const handleMapCamera = async (isGesture: boolean | undefined) => {
     const cameraRef = await mapRef.current?.getCamera();
     if (cameraRef) {
-      setCamera((prevCamera) => ({
-        ...prevCamera,
+      setCamera((prev) => ({
+        ...prev,
         heading: cameraRef.heading,
         pitch: cameraRef.pitch,
         altitude: cameraRef.altitude || 0,
@@ -148,21 +183,26 @@ export default function Map() {
     }
   };
 
-  const handleFollowUserLocation = () => {
-    if (mapRef.current) {
-      mapRef.current.animateCamera(
-        {
-          center: camera.center,
-          pitch: camera.pitch,
-          heading: camera.heading,
-          altitude: camera.altitude,
-          zoom: Math.min(camera.zoom ?? 17, 17),
-        },
-        { duration: 2000 }
-      );
-      setTimeout(() => setFollowUserLocation(true), 3000);
-    }
-  };
+  const debouncedFollowUserLocation = useCallback(
+    debounce(() => {
+      if (mapRef.current) {
+        mapRef.current.animateCamera(
+          {
+            center: camera.center,
+            pitch: camera.pitch,
+            heading: camera.heading,
+            altitude: camera.altitude,
+            zoom: Math.min(camera.zoom ?? 17, 17),
+          },
+          { duration: 2000 }
+        );
+        setTimeout(() => setFollowUserLocation(true), 3000);
+      }
+    }, 500),
+    [camera]
+  );
+
+  const handleFollowUserLocation = () => debouncedFollowUserLocation();
 
   return (
     <>
@@ -185,7 +225,7 @@ export default function Map() {
         {markers.map((marker, index) => (
           <CustomMarker
             key={index}
-            id={String(index)}
+            id={String(index + 1)}
             name={marker.name}
             type={marker.type}
             color={
@@ -198,32 +238,6 @@ export default function Map() {
             onPress={selectDestination}
           />
         ))}
-        {/* <CustomMarker
-          id="1"
-          name="Container de Lixo 01"
-          type="garbage-container"
-          color={COLORS.markerGarbage}
-          latitude={-12.9371}
-          longitude={-38.4895}
-          onPress={selectDestination}
-        />
-        <CustomMarker
-          id="2"
-          name="Container de Lixo 02"
-          type="garbage-container"
-          color={COLORS.markerGarbage}
-          latitude={-12.9411}
-          longitude={-38.4908}
-          onPress={selectDestination}
-        />
-        <CustomMarker
-          id="3"
-          name="Caminhão de Coleta 01"
-          type="garbage-collection-truck"
-          color={COLORS.markerTruck}
-          latitude={-12.9348}
-          longitude={-38.4839}
-        /> */}
         {destinationLocation && (
           <MapViewDirections
             origin={camera.center}
@@ -234,7 +248,10 @@ export default function Map() {
             lineDashPattern={[0]}
             optimizeWaypoints
             precision="high"
-            onError={() => Alert.alert("Erro ao obter direções...")}
+            onError={() => {
+              setErrorMessage("Erro ao obter direções...");
+              setShowErrorDialog(true);
+            }}
             onReady={(result) => {
               if (shouldFitMarkers) {
                 mapRef.current?.fitToCoordinates(result.coordinates, {
@@ -282,9 +299,24 @@ export default function Map() {
           onPress={handleFollowUserLocation}
         />
       </View>
+      <CustomDialog
+        title="Permissão de Localização"
+        message="Por favor, permita o acesso à localização nas configurações do dispositivo."
+        buttonText="OK"
+        isVisible={showLocationPermissionDialog}
+        onClose={handleCloseDialog}
+        onConfirm={openAppSettings}
+      />
+      <CustomDialog
+        title="Erro"
+        message={errorMessage}
+        buttonText="OK"
+        isVisible={showErrorDialog}
+        onClose={() => setShowErrorDialog(false)}
+      />
     </>
   );
-}
+};
 
 const styles = StyleSheet.create({
   map: {
@@ -303,5 +335,8 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginHorizontal: 5,
+    marginVertical: 10,
   },
 });
+
+export default Map;
