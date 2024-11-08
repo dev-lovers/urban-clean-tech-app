@@ -106,33 +106,7 @@ const Map = () => {
   useEffect(() => {
     if (socket) {
       const handleSocketUpdate = (data: MapMarker[]) => {
-        setMarkers((prevMarkers) =>
-          prevMarkers.map((marker) =>
-            data.some(
-              (updatedMarker) =>
-                updatedMarker.name === marker.name &&
-                updatedMarker.type === marker.type &&
-                (Math.abs(updatedMarker.latitude - marker.latitude) > 0.0001 ||
-                  Math.abs(updatedMarker.longitude - marker.longitude) > 0.0001)
-            )
-              ? {
-                  ...marker,
-                  latitude:
-                    data.find(
-                      (updatedMarker) =>
-                        updatedMarker.name === marker.name &&
-                        updatedMarker.type === marker.type
-                    )?.latitude ?? marker.latitude,
-                  longitude:
-                    data.find(
-                      (updatedMarker) =>
-                        updatedMarker.name === marker.name &&
-                        updatedMarker.type === marker.type
-                    )?.longitude ?? marker.longitude,
-                }
-              : marker
-          )
-        );
+        setMarkers(data);
       };
 
       socket.on("updateCoordinates", handleSocketUpdate);
@@ -211,7 +185,6 @@ const Map = () => {
         camera={followUserLocation ? camera : undefined}
         showsUserLocation
         showsMyLocationButton={false}
-        zoomControlEnabled
         loadingEnabled
         loadingBackgroundColor="#ffffff"
         toolbarEnabled={false}
@@ -324,7 +297,7 @@ const styles = StyleSheet.create({
   },
   buttonWrapper: {
     position: "absolute",
-    bottom: 115,
+    bottom: 20,
     right: 15,
     flexDirection: "column",
     backgroundColor: "rgba(255, 255, 255, 0.9)",
