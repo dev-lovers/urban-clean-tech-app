@@ -25,6 +25,7 @@ const COLORS = {
 interface Destination {
   latitude: number;
   longitude: number;
+  type: "garbage-container" | "garbage-collection-truck" | null;
 }
 
 interface MapMarker {
@@ -123,8 +124,11 @@ const Map = () => {
     Linking.openSettings();
   };
 
-  const selectDestination = (latitude: number, longitude: number) =>
-    setSelectedDestination({ latitude, longitude });
+  const selectDestination = (
+    latitude: number,
+    longitude: number,
+    type: "garbage-container" | "garbage-collection-truck"
+  ) => setSelectedDestination({ latitude, longitude, type });
 
   const getDirections = () => {
     if (selectedDestination) {
@@ -208,7 +212,9 @@ const Map = () => {
             }
             latitude={marker.latitude}
             longitude={marker.longitude}
-            onPress={selectDestination}
+            onPress={() =>
+              selectDestination(marker.latitude, marker.longitude, marker.type)
+            }
           />
         ))}
         {destinationLocation && (
@@ -253,17 +259,18 @@ const Map = () => {
             onPress={removeDirections}
           />
         )}
-        {selectedDestination && (
-          <IconButton
-            mode="contained"
-            containerColor={COLORS.primary}
-            icon="directions"
-            iconColor="#ffffff"
-            size={20}
-            style={styles.iconButton}
-            onPress={getDirections}
-          />
-        )}
+        {selectedDestination &&
+          selectedDestination.type !== "garbage-collection-truck" && (
+            <IconButton
+              mode="contained"
+              containerColor={COLORS.primary}
+              icon="directions"
+              iconColor="#ffffff"
+              size={20}
+              style={styles.iconButton}
+              onPress={getDirections}
+            />
+          )}
         <IconButton
           mode="contained"
           icon="crosshairs-gps"
@@ -272,6 +279,7 @@ const Map = () => {
           onPress={handleFollowUserLocation}
         />
       </View>
+
       <CustomDialog
         title="Permissão de Localização"
         message="Por favor, permita o acesso à localização nas configurações do dispositivo."
